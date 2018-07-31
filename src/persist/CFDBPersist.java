@@ -7,6 +7,7 @@ package persist;
 
 import CFProject.CFComment;
 import CFProject.CFProject;
+import CFProject.CFStates;
 import java.time.LocalDate;
 import javafx.collections.ObservableList;
 
@@ -16,10 +17,7 @@ import javafx.collections.ObservableList;
  */
 public class CFDBPersist implements IPersist {
 
-    @Override
-    public ObservableList<CFProject> getProjects(boolean isDone, boolean notDone, boolean wip, boolean failed, boolean resting, boolean infinite, boolean toDo) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+
 
     @Override
     public int addProject(LocalDate date, String description, String state, String goal) {
@@ -29,7 +27,7 @@ public class CFDBPersist implements IPersist {
     }
 
     @Override
-    public void update(int id, String newState) {
+    public void updateState(int id, String newState) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -57,14 +55,26 @@ public class CFDBPersist implements IPersist {
     public void updateGoal(int id, String newGoal) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+/*
     @Override
     public ObservableList<CFProject> searchProjects(String searchString) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+*/
     public void setURL(String httpcurtfurumark) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
+    @Override
+    public int addProject(CFProject project) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+
+
+
+    @Override
+    public ObservableList<CFProject> getProjects(String searchString, CFStates states) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

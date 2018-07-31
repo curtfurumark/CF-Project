@@ -6,8 +6,13 @@
 package CFProject;
 
 import java.io.File;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.event.Event;
 
 /**
  *
@@ -17,68 +22,49 @@ public class CFUtil {
 
     private static boolean DEBUG = true;
     
-  public static String composeWhereClause(boolean done, boolean notDone, boolean wip, boolean failed, boolean resting, boolean infinite, boolean toDo){
-      String strDone = done ? "done" : "";
-      String strNotDone = notDone ? "not done": "";
-      String strWip = wip ? "wip": "";
-      String strInfinite = infinite ? "infinite": "";
-      String strFailed = failed ? "failed": "";
-      String strResting = resting ? "resting": "";
-      String strToDo = toDo ? "to do": "";
-      if( DEBUG){
-          System.out.println(String.format("done: %b,  notDone %b, wip: %b,  failed: %b, resting; %b, infinite: %b, todo:%b", 
-          done, notDone, wip, failed, resting, infinite, toDo));
-      
-      }
-      return composeWhereClause(strDone, strNotDone, strWip, strFailed, strResting, strInfinite, strToDo);
-  
-  }
-  public static String composeWhereClause(String done, String notDone, String wip, String failed, String resting, String infinite, String toDo) {
-        System.out.println("composeWhereClause()");
-        if (DEBUG){
-            System.out.println(done + notDone + wip + failed + resting + infinite);
-        }
-        String whereClause = "";
-        List<String> conditions = new ArrayList<>();
-        if ( !done.isEmpty()){
-            conditions.add(done);
-        }
-        if(!notDone.isEmpty()){
-            conditions.add(notDone);
-        }
-        if(!wip.isEmpty()){
-            conditions.add(wip);
-        }
-        if(!infinite.isEmpty()){
-            conditions.add(infinite);
-        }
-        if (!failed.isEmpty()){
-            conditions.add(failed);
-        }
-        if (!resting.isEmpty()){
-            conditions.add(resting);
-        }
-        if (!toDo.isEmpty()){
-            conditions.add(toDo);
-        }
-                
-        System.out.println(conditions);
-        if ( conditions.isEmpty()){
-            System.out.println("no where conditions");
-            return "";
-        }
-        whereClause = " where state = ";
-        for ( int i = 0; i < conditions.size(); i++){
-            whereClause +=  "'" + conditions.get(i) + "'";
-            if ( i < conditions.size() - 1) {
-                whereClause += " or state = ";
+    /**
+     * for the state part of the sql query
+     * select * from db where ( state = 'todo') order by....
+     **/
+    public static String composeWhereClause(CFStates states){
+        if ( DEBUG) System.out.println("CFUtil.composeWhereClause()");
+        String clauseFragment = "";
+        List trueStatesList = states.getTrueStates();
+        System.out.println(trueStatesList.toString());
+        List<String> list = states.getTrueStates();
+        if ( list.size() > 0){
+            clauseFragment += "and (";
+            for( int i = 0; i < list.size(); i++){
+                if ( i > 0 && (i <= list.size() - 1)){
+                    clauseFragment += "or ";
+                }
+                clauseFragment += String.format("state = '%s' ", list.get(i));
             }
+            clauseFragment += ")";
         }
-        System.out.println("and the winner is: " + whereClause);
-        return whereClause;
-    }  
+        return clauseFragment;
+    }
+  
+
     public static String getCurrentDir(){
         File cwd = new File("").getAbsoluteFile();
         return cwd.toString();
+    }
+
+    static void print(ResultSet rs) {
+        System.out.println("CFUtil.print(ResultSet)");
+        try {
+            while ( rs.next()){
+                System.out.println("");
+                System.out.print(rs.getString("description"));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(CFUtil.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    static void debug(Event event) {
+        System.out.println("CFUtil.debug(Event");
+        System.out.println("Source: " + event.getSource());
     }
 }

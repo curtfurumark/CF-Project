@@ -33,6 +33,7 @@ public class CFProjectTester {
         System.out.println("CFProjectTester.main()");
         new CFProjectTester();
     }
+    /*
     public void searchProjects(String searchString){
        
         SQLitePersist persist = new SQLitePersist();
@@ -41,7 +42,7 @@ public class CFProjectTester {
             System.out.println("\t" + project.toString());
         }
     }
-
+*/
     private String composeWhereClause(String done, String notDone, String wip, String infinite, String failed) {
         System.out.println("composeWhereClause()");
         String whereClause = "";

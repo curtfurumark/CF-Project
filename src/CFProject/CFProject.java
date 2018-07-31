@@ -8,17 +8,19 @@ package CFProject;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+//import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 /**
  *
  * @author curt
  */
 public class CFProject {
-    private LocalDate targetDate;
+    private LocalDate       targetDate;
     private LocalDateTime   lastUpdate;
-    private String description;
-    private String comment;
-    private String goal;
+    private String          description;
+    private String          comment;
+    private String          goal;
 
     public String getComment() {
         return comment;
@@ -54,11 +56,18 @@ public class CFProject {
         this.lastUpdate = lastUpdate;
     }
     public CFProject(LocalDate targetDate, String description, String state, String goal) {
+        System.out.println("CFProject ctor...4 args");
         this.targetDate = targetDate;
         this.description = description;
         this.state = state;
         this.goal = goal;
-        this.lastUpdate = LocalDateTime.now();
+        this.comment = "<no comment yet>";
+        //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        this.lastUpdate = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+        //DateTimeFormatter  formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        //this.lastUpdate = LocalDateTime.now().format(formatter);
+        
+        //lastUpdate = lastUpdate.format(formatter);
     }
      
     public CFProject(LocalDate targetDate, String description, String state, int id, String comment, String goal, LocalDateTime lastUpdate) {
@@ -99,6 +108,10 @@ public class CFProject {
 
     @Override
     public String toString() {
-        return String.format("CFTodoItem(%s, %s, %s, %d, %s, %s, %s)", description, targetDate, state, id, comment, goal, lastUpdate);
+        if (lastUpdate == null){
+            System.out.println("lastUpdate is null");
+            //lastUpdate = LocalDateTime.now();
+        }
+        return String.format("CFTodoItem(%s, %s, %s, %d, %s, %s, %s)", description, targetDate, state, id, comment, goal, lastUpdate.toString());
     }
 }

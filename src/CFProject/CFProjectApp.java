@@ -6,6 +6,7 @@
 package CFProject;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -39,17 +40,15 @@ import persist.SQLitePersist;
  * @author curt
  */
 public class CFProjectApp extends Application{
-
-    //private Button buttonGetTodoItems = new Button("get todo items");
     private final Button buttonAddProject = new Button("add project");
     private final Button buttonDeleteItem = new Button("delete item");
     private final Button buttonGo2AddProject = new Button("go to add project");
-    private Button buttonGo2ShowProjects = new Button("view projects");
-    private TextArea textAreaGoal = new TextArea();
-    private TextArea textAreaCurrentWorkingDirectory = new TextArea();
+    private final Button buttonGo2ShowProjects = new Button("view projects");
+    private final TextArea textAreaGoal = new TextArea();
+    private final TextArea textAreaCurrentWorkingDirectory = new TextArea();
     private TableView<CFProject> tableProjects;
     private TableView<CFComment> tableComment;
-    private VBox layout = new VBox();
+    private final VBox layout = new VBox();
     private final HBox topLayoutSceneShow = new HBox();
     private final HBox topLayoutSceneAdd  = new HBox();
     private Scene scene = null;
@@ -69,9 +68,7 @@ public class CFProjectApp extends Application{
     private final boolean DEBUG = true;
     private final int HEIGHT = 800;
     private final int WIDTH = 1300;
-    private final String title = "CF Project 20180530 001";
-    
-    
+    private final String title = "CF Project 20180730 17:13";
     
     /**
      * @param args the command line arguments
@@ -87,22 +84,19 @@ public class CFProjectApp extends Application{
         scene = new Scene(layout, WIDTH, HEIGHT);
         buttonAddProject.setOnAction(ae->addProject());
         buttonDeleteItem.setOnAction(ae->deleteItem());
-        checkBoxDone.setOnAction(ae->showState());
-        checkBoxNotDone.setOnAction(ae->showState());
-        checkBoxWip.setOnAction(ae->showState());
+        checkBoxDone.setOnAction(ae->getProjects());
+        checkBoxNotDone.setOnAction(ae->getProjects());
+        checkBoxWip.setOnAction(ae->getProjects());
         textFieldSearch.setOnAction(ae->searchProjects());
-        checkBoxWip.setSelected(true);
-        checkBoxFailed.setOnAction(ae->showState());
-        checkBoxResting.setOnAction(ae->showState());
-        checkBoxInfinite.setOnAction(ae->showState());
-        checkBoxToDo.setOnAction(ae->showState());
+        checkBoxFailed.setOnAction(ae->getProjects());
+        checkBoxResting.setOnAction(ae->getProjects());
+        checkBoxInfinite.setOnAction(ae->getProjects());
+        checkBoxToDo.setOnAction(ae->getProjects());
         datePicker.setValue(LocalDate.now());
-        datePicker.setOnAction(new EventHandler() {
-     @Override
-     public void handle(Event t) {
-         LocalDate date = datePicker.getValue();
-         System.err.println("Selected date: " + date);
-     }});
+        datePicker.setOnAction(e->handleEditTargetDate(e));
+        /*
+        datePicker.setOnAction(new CFDateHandler());
+        */
         initTable();
         initCommentTable();
         topLayoutSceneShow.getChildren().addAll(buttonGo2AddProject, checkBoxDone,checkBoxNotDone, checkBoxWip, checkBoxFailed, checkBoxResting, checkBoxInfinite, checkBoxToDo, textFieldSearch);
@@ -144,25 +138,7 @@ public class CFProjectApp extends Application{
         columnGoal.setCellValueFactory(new PropertyValueFactory("goal"));
         columnGoal.setEditable(true);
         columnGoal.setMinWidth(250);
-        columnGoal.setOnEditCommit(
-            new EventHandler<CellEditEvent<CFProject, String>>() 
-           {
-        @Override
-        public void handle(CellEditEvent<CFProject, String> t) {
-            System.out.println("will handle goal editing ???");
-            String newGoal = t.getNewValue();
-            System.out.println("new goal: " + newGoal);
-            CFProject cf = t.getTableView().getItems().get(t.getTablePosition().getRow());
-            cf.setGoal(newGoal);
-            persist.updateGoal(cf.getId(), newGoal);
-            System.out.println("\t" + cf.toString());
-            ((CFProject) t.getTableView().getItems().get(
-                t.getTablePosition().getRow())
-                ).setState(t.getNewValue());
-        }
-      
-        }
-    );
+        columnGoal.setOnEditCommit(e->handleEditGoal(e));
         
         TableColumn<CFProject, LocalDate> columnTargetDate = new TableColumn<>("target date");
         columnTargetDate.setCellValueFactory(new PropertyValueFactory("targetDate"));
@@ -184,89 +160,18 @@ public class CFProjectApp extends Application{
         states.add("resting");
         states.add("infinite");
         states.add("to do");
-        //states.add("resting");
         columnState.setCellFactory(ComboBoxTableCell.forTableColumn(states));
         columnGoal.setCellFactory(TextFieldTableCell.forTableColumn());
         columnComment.setCellFactory(TextFieldTableCell.forTableColumn());
-        
-        columnState.setOnEditCommit(
-            new EventHandler<CellEditEvent<CFProject, String>>() 
-           {
-        @Override
-        public void handle(CellEditEvent<CFProject, String> t) {
-            System.out.println("will handle editing of states");
-            String newState = t.getNewValue();
-            System.out.println("new state: " + newState);
-            CFProject cf = t.getTableView().getItems().get(t.getTablePosition().getRow());
-            cf.setState(newState);
-            persist.update(cf.getId(), newState);
-            System.out.println("\t" + cf.toString());
-            ((CFProject) t.getTableView().getItems().get(
-                t.getTablePosition().getRow())
-                ).setState(t.getNewValue());
-        }
-        }
-    );
-        //columnGoal.setOnEditCommit(ae->editGoal());
-        columnComment.setOnEditCommit(
-            new EventHandler<CellEditEvent<CFProject, String>>() 
-           {
-        @Override
-        public void handle(CellEditEvent<CFProject, String> t) {
-            System.out.println("will handle editing comment/status");
-            String newComment = t.getNewValue();
-            System.out.println("new comment: " + newComment);
-            CFProject cf = t.getTableView().getItems().get(t.getTablePosition().getRow());
-            cf.setComment(newComment);
-            persist.updateComment(cf.getId(), newComment);
-            persist.addComment(cf.getId(), newComment);
-            ((CFProject) t.getTableView().getItems().get(
-                t.getTablePosition().getRow())
-                ).setState(t.getNewValue());
-            tableProjects.setItems(persist.getProjects( checkBoxNotDone.isSelected(),
-                                                        checkBoxDone.isSelected(), 
-                                                        checkBoxWip.isSelected(), 
-                                                        checkBoxFailed.isSelected(), 
-                                                        checkBoxResting.isSelected(),
-                                                        checkBoxInfinite.isSelected(),
-                                                        checkBoxToDo.isSelected()));
-            tableComment.setItems(persist.getComments(cf.getId()));
-        }
-        }
-    );
-       
-        
+        columnState.setOnEditCommit(e->handleEditState(e));
+        columnComment.setOnEditCommit(e->handleEditComment(e));
         
         tableProjects = new TableView<>();
         tableProjects.setEditable(true);
        
-        tableProjects.setItems(persist.getProjects( checkBoxNotDone.isSelected(), 
-                                                    checkBoxDone.isSelected(), 
-                                                    checkBoxWip.isSelected(), 
-                                                    checkBoxFailed.isSelected(), 
-                                                    checkBoxResting.isSelected(),
-                                                    checkBoxInfinite.isSelected(),
-                                                    checkBoxToDo.isSelected()));
-        //table.getColumns().addAll(columnDescription, columnTargetDate, columnIsDone);
+        tableProjects.setItems(persist.getProjects(textFieldSearch.getText(), new CFStates(this)));
         tableProjects.getColumns().addAll(columnId, columnDescription, columnGoal, columnTargetDate,columnLastUpdate, columnComment, columnState);
-        tableProjects.setOnMouseClicked((MouseEvent event) -> {
-        if(event.getButton().equals(MouseButton.PRIMARY)){
-            CFProject project =  tableProjects.getSelectionModel().getSelectedItem();
-            if (project != null){
-                ObservableList<CFComment> comments = persist.getComments(project.getId());
-                if ( comments != null){
-                    tableComment.setItems(comments);
-                }else{
-                    System.out.println("no comments....");
-                }
-                //tableComment.setItems(persist.getComments(todoItem.getId()));
-                //System.out.println(tableProjects.getSelectionModel().getSelectedItem());                
-            }else{
-                System.err.println("project is null...");
-            }
-
-        }
-    });
+        tableProjects.setOnMouseClicked(e->handleGetComments(e));
     }
 
     private void closeApplication() {
@@ -274,45 +179,42 @@ public class CFProjectApp extends Application{
         primaryStage.close();
     }
     
-    /**
-    private void buttonGetTodoItems(){
-        System.out.println("buttonGetTodoItems");
-        boolean isDone = checkBoxDone.isSelected();
-        boolean notDone = checkBoxNotDone.isSelected();
-        boolean wip = checkBoxWip.isSelected();
-        boolean failed = checkBoxFailed.isSelected();
-        boolean resting = checkBoxResting.isSelected();
-        boolean infinite = checkBoxInfinite.isSelected();
-        boolean toDo = checkBoxToDo.isSelected();
-        ObservableList<CFProject> items = persist.getProjects(isDone,  notDone, wip, failed, resting, infinite, toDo);
-        System.out.println("items size: " + items.size());
-        for(CFProject item: items){
-            System.out.println("\t" + item.toString());
-        }
-        tableProjects.setItems(items);
-    }
-    * */
+   
     private void addProject(){
+        if( DEBUG) System.out.println("CFProject.addProject()");
         LocalDate date = datePicker.getValue();
         String description = textFieldDescription.getText();
         String goal = textAreaGoal.getText();
         String state = "not done";
+        
         int id = persist.addProject(date, description, state, goal);
+        //CFStates states = new CFStates(this);
         CFProject project = new CFProject(date, description, state,  goal);
+        id = persist.addProject(project);
         if (DEBUG) System.out.println("\t" + project.toString());
         project.setId(id);
-        tableProjects.getItems().add(project);
+        updateProjectTable();
         textFieldDescription.clear();    
+    }
+    /**
+     * the one to call whenever you want to update the table
+     */
+    private void updateProjectTable(){
+        System.out.println("CFProjectApp.updateProjectTable()");
+        ObservableList<CFProject> projects = persist.getProjects(textFieldSearch.getText(),new CFStates(this));
+        System.out.println("\tnumber of projects found: " + projects.size());
+        tableProjects.setItems(projects);
+    
     }
 
     private void deleteItem() {
-        System.out.println("deleteItem()  ");
+        if (DEBUG) System.out.println("CFProjects.deleteItem()");
         ObservableList<CFProject> allItems, deleteItems;
         allItems = tableProjects.getItems();
         for( CFProject item: allItems){
             System.out.println( item.toString());
         }
-        System.out.println("items to delete: ");
+        if (DEBUG )System.out.println("items to delete: ");
         deleteItems  = tableProjects.getSelectionModel().getSelectedItems();
         for ( CFProject item: deleteItems){
             System.out.println(item.toString());
@@ -320,40 +222,13 @@ public class CFProjectApp extends Application{
         }
         deleteItems.forEach(allItems::remove);
     }
-    private void showComments(int id){
-        if ( DEBUG) System.out.println("showComments: " + id);
-        persist.getComments(id);
-    }
-
-    private void showState() {
-        System.out.println("show state");
-        boolean isDone = checkBoxDone.isSelected();
-        boolean notDone = checkBoxNotDone.isSelected();
-        boolean wip = checkBoxWip.isSelected();
-        boolean failed = checkBoxFailed.isSelected();
-        boolean resting = checkBoxResting.isSelected();
-        boolean infinite = checkBoxInfinite.isSelected();
-        boolean toDo = checkBoxToDo.isSelected();
-        if( checkBoxDone.isSelected()){
-            System.out.println("done is selected");
-        }
-        if( checkBoxNotDone.isSelected()){
-            System.out.println("not done is selected");
-        }
-        if( checkBoxWip.isSelected()){
-            System.out.println("wip is selected");
-        }
-        if( checkBoxFailed.isSelected()){
-            System.out.println("failed is selected");
-        }
-        if ( checkBoxInfinite.isSelected()){
-            System.out.println("infinite is selected");
-        }
-        if ( checkBoxToDo.isSelected()){
-            System.out.println("to do is selected");
-        }
-        ObservableList<CFProject> list = persist.getProjects(isDone, notDone, wip, failed, resting, infinite, toDo);
-        tableProjects.getItems().setAll(list);
+    /**
+     * 
+     */
+    private void getProjects() {
+        System.out.println("CFProject.getProjects");
+        ObservableList<CFProject> projects =  persist.getProjects(textFieldSearch.getText(), new CFStates(this));      
+        tableProjects.getItems().setAll(projects);
     }
 
     private void initCommentTable() {
@@ -372,21 +247,133 @@ public class CFProjectApp extends Application{
         tableComment.getColumns().addAll(columnProjectId, columnComment, columnTimeStamp);
     }
 
-    private void editGoal() {
-        System.out.println("editGoal()");
-    }
 
+    /**
+     * searches for projects
+     * according to state and search string
+     * @param no params
+     * 
+     */
     private void searchProjects() {
-       System.out.println("searchProjects: " + textFieldSearch.getText());
+        boolean DEBUG_THIS = false;
+       System.out.println("CFProjects.searchProjects: " + textFieldSearch.getText());
        String searchString = textFieldSearch.getText();
        if ( searchString == null){
            System.err.println("searchstring is null...");
            return;
        }
-       ObservableList<CFProject> projects = persist.searchProjects(searchString);
-       System.out.println("\tnumber of projects found: " + projects.size());
+       CFStates states = new CFStates(this);
+       if( DEBUG_THIS) System.out.println("\tstates: " + states.toString());
+       ObservableList<CFProject> projects = persist.getProjects(searchString, states);
+       if (DEBUG_THIS) System.out.println("\tnumber of projects found: " + projects.size());
        //tableProjects.
        tableProjects.setItems(projects);
     }
+
+    boolean getInfinite() {
+        return checkBoxInfinite.isSelected(); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    boolean getToDo() {
+        return checkBoxToDo.isSelected(); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    boolean getWip() {
+        return checkBoxWip.isSelected(); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    boolean getDone() {
+        return checkBoxDone.isSelected();    
+    }
+
+    boolean getFailed() {
+        return checkBoxFailed.isSelected();
+    }
+
+    boolean getResting() {
+        return checkBoxResting.isSelected();
+    }
+
+    boolean getNotDone() {
+        return checkBoxNotDone.isSelected();
+    }
+    /**
+     * gets comments belonging to....whatever... project
+     * @param event 
+     */
+    public void handleGetComments(MouseEvent event) {
+        boolean DEBUG_THIS = false;
+        System.out.println("CFProject.handleGetComments(MouseEvent event)");
+        if(event.getButton().equals(MouseButton.PRIMARY)){
+        CFProject project =  tableProjects.getSelectionModel().getSelectedItem();
+        if (project != null){
+            ObservableList<CFComment> comments = persist.getComments(project.getId());
+            if ( comments != null){
+                tableComment.setItems(comments);
+            }else{
+                System.out.println("no comments....");
+            }
+        }else{
+                System.err.println("\tproject is null...");
+            }
+        }
+    }
     
+    public void handleEditGoal(CellEditEvent<CFProject, String> event) {
+        boolean DEBUG_THIS = false;
+        System.out.println("CFProject.handleEditGoal");
+        String newGoal = event.getNewValue();
+        if (DEBUG_THIS) System.out.println("\tnew goal: " + newGoal);
+        CFProject cf = event.getTableView().getItems().get(event.getTablePosition().getRow());
+        cf.setGoal(newGoal);
+        persist.updateGoal(cf.getId(), newGoal);
+        updateProjectTable();
+
+    }
+    /**
+     * handle editing of comments from projecttable
+     * @param event (event fired by <enter>
+     */
+    public void handleEditComment(CellEditEvent<CFProject, String> event){
+        boolean DEBUG_THIS = true;
+        System.out.println("CFProjectApp.handleEditComment");
+        String newComment = event.getNewValue();
+        if( DEBUG_THIS) System.out.println("\tnew comment: " + newComment);
+        CFProject cf = event.getTableView().getItems().get(event.getTablePosition().getRow());
+        cf.setComment(newComment);
+        persist.updateComment(cf.getId(), newComment);
+        persist.addComment(cf.getId(), newComment);
+        ((CFProject) event.getTableView().getItems().get(
+                event.getTablePosition().getRow())
+                ).setState(event.getNewValue());
+ 
+        tableProjects.setItems(persist.getProjects(textFieldSearch.getText(), new CFStates(this)));
+        tableComment.setItems(persist.getComments(cf.getId()));
+        updateProjectTable();
+    }
+    
+    private void handleEditTargetDate(Event event){
+        boolean DEBUG_THIS = true;
+        System.out.println("CFProject.handleEditTargetDate");
+        LocalDate date = datePicker.getValue();
+        if (DEBUG_THIS) System.err.println("\tnew target date: " + date);
+    }
+    /**
+     * not so much handling edit of comments as adding  a new one, but there you go
+     * if it makes you happy
+     * @param event 
+     */
+    public void handleEditState(CellEditEvent<CFProject, String> event){
+        boolean DEBUG_THIS = true;
+        if ( DEBUG_THIS) System.out.println("CFProjectApp.handleEditState");
+        String newState = event.getNewValue();
+        if (DEBUG_THIS) System.out.println("\tnew state: " + newState);
+        CFProject cf = event.getTableView().getItems().get(event.getTablePosition().getRow());
+        cf.setState(newState);
+        cf.setLastUpdate(LocalDateTime.now());
+        persist.updateState(cf.getId(), newState);
+        if ( DEBUG_THIS) System.out.println("\t" + cf.toString());
+        ((CFProject) event.getTableView().getItems().get(event.getTablePosition().getRow())).setState(event.getNewValue());
+        this.updateProjectTable();
+    }
 }

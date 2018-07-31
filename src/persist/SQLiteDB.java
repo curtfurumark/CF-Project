@@ -21,7 +21,7 @@ public class SQLiteDB {
     private Connection connection;
     private final String driverName = "org.sqlite.JDBC"; 
     private final String dbUrl = "jdbc:sqlite:cfdb.db";
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
         
     public void init() throws ClassNotFoundException, SQLException{
         System.out.println("SQLiteDB.init()");
@@ -55,10 +55,14 @@ public class SQLiteDB {
         }
         return stat;
     }
-    public ResultSet executeQuery(String query){
+    public ResultSet executeQuery(String query) throws Exception{
         ResultSet res  = null;
+        if (DEBUG){System.out.println("SQLiteDB.executeQuery " + query);}
+        if ( connection == null){
+            System.out.println("connection is null");
+            throw new Exception("connection is null");
+        }
         try {
-            if (DEBUG){System.out.println("SQLiteDB.executeQuery " + query);}
             Statement statement = connection.createStatement();
             res = statement.executeQuery(query);
         } catch (SQLException ex) {
