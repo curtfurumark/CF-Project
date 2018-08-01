@@ -41,7 +41,7 @@ import persist.SQLitePersist;
  */
 public class CFProjectApp extends Application{
     private final Button buttonAddProject = new Button("add project");
-    private final Button buttonDeleteItem = new Button("delete item");
+    //private final Button buttonDeleteItem = new Button("delete item");
     private final Button buttonGo2AddProject = new Button("go to add project");
     private final Button buttonGo2ShowProjects = new Button("view projects");
     private final TextArea textAreaGoal = new TextArea();
@@ -62,13 +62,13 @@ public class CFProjectApp extends Application{
     private final CheckBox checkBoxNotDone = new CheckBox("not done");
     private final CheckBox checkBoxWip = new CheckBox("wip");
     private final CheckBox checkBoxFailed = new CheckBox("failed");
-    private final CheckBox checkBoxResting = new CheckBox("resting");
+    private final CheckBox  checkBoxResting = new CheckBox("resting");
     private final CheckBox  checkBoxInfinite = new CheckBox("infinite");
-    private final CheckBox checkBoxToDo = new CheckBox("to do");
-    private final boolean DEBUG = true;
-    private final int HEIGHT = 800;
-    private final int WIDTH = 1300;
-    private final String title = "CF Project 20180730 17:13";
+    private final CheckBox  checkBoxToDo = new CheckBox("to do");
+    private final boolean   DEBUG = true;
+    private final int       HEIGHT = 700;
+    private final int       WIDTH = 1200;
+    private final String title = "CF Project 20180801 10:23";
     
     /**
      * @param args the command line arguments
@@ -83,7 +83,7 @@ public class CFProjectApp extends Application{
         primaryStage.setTitle(title);
         scene = new Scene(layout, WIDTH, HEIGHT);
         buttonAddProject.setOnAction(ae->addProject());
-        buttonDeleteItem.setOnAction(ae->deleteItem());
+        //buttonDeleteItem.setOnAction(ae->deleteItem());
         checkBoxDone.setOnAction(ae->getProjects());
         checkBoxNotDone.setOnAction(ae->getProjects());
         checkBoxWip.setOnAction(ae->getProjects());
@@ -93,7 +93,7 @@ public class CFProjectApp extends Application{
         checkBoxInfinite.setOnAction(ae->getProjects());
         checkBoxToDo.setOnAction(ae->getProjects());
         datePicker.setValue(LocalDate.now());
-        datePicker.setOnAction(e->handleEditTargetDate(e));
+        
         /*
         datePicker.setOnAction(new CFDateHandler());
         */
@@ -101,9 +101,8 @@ public class CFProjectApp extends Application{
         initCommentTable();
         topLayoutSceneShow.getChildren().addAll(buttonGo2AddProject, checkBoxDone,checkBoxNotDone, checkBoxWip, checkBoxFailed, checkBoxResting, checkBoxInfinite, checkBoxToDo, textFieldSearch);
         topLayoutSceneShow.setPadding(new Insets(10, 10, 10, 10));
-        //topLayoutSceneShow
-         topLayoutSceneAdd.getChildren().addAll(datePicker, textFieldDescription, buttonAddProject, buttonDeleteItem, buttonGo2ShowProjects);
-         buttonGo2AddProject.setOnAction(e->primaryStage.setScene(sceneNewProject));
+        topLayoutSceneAdd.getChildren().addAll(datePicker, textFieldDescription, buttonAddProject, buttonGo2ShowProjects);
+        buttonGo2AddProject.setOnAction(e->primaryStage.setScene(sceneNewProject));
         layout.getChildren().addAll(topLayoutSceneShow, tableProjects, tableComment);
         initAddProjectScene();
         /*choiceBoxStates = new ChoiceBox<>();
@@ -163,9 +162,10 @@ public class CFProjectApp extends Application{
         columnState.setCellFactory(ComboBoxTableCell.forTableColumn(states));
         columnGoal.setCellFactory(TextFieldTableCell.forTableColumn());
         columnComment.setCellFactory(TextFieldTableCell.forTableColumn());
+        //columnTargetDate.setCellFactory(DateEditingCell.forTableColumn());
         columnState.setOnEditCommit(e->handleEditState(e));
         columnComment.setOnEditCommit(e->handleEditComment(e));
-        
+        datePicker.setOnMouseClicked(new CFOnMouseClicked());
         tableProjects = new TableView<>();
         tableProjects.setEditable(true);
        
@@ -179,7 +179,9 @@ public class CFProjectApp extends Application{
         primaryStage.close();
     }
     
-   
+   /**
+    * adds a new project to the databas
+    */
     private void addProject(){
         if( DEBUG) System.out.println("CFProject.addProject()");
         LocalDate date = datePicker.getValue();
@@ -207,6 +209,10 @@ public class CFProjectApp extends Application{
     
     }
 
+    /**
+     * deletes a project, but this one is not in use right now
+     * not sure about ROWID... when deleting a project...find out please
+     * /
     private void deleteItem() {
         if (DEBUG) System.out.println("CFProjects.deleteItem()");
         ObservableList<CFProject> allItems, deleteItems;
@@ -304,6 +310,7 @@ public class CFProjectApp extends Application{
     public void handleGetComments(MouseEvent event) {
         boolean DEBUG_THIS = false;
         System.out.println("CFProject.handleGetComments(MouseEvent event)");
+        if (DEBUG_THIS ) CFUtil.debug(event);
         if(event.getButton().equals(MouseButton.PRIMARY)){
         CFProject project =  tableProjects.getSelectionModel().getSelectedItem();
         if (project != null){
@@ -317,6 +324,13 @@ public class CFProjectApp extends Application{
                 System.err.println("\tproject is null...");
             }
         }
+    }
+    
+    public void handleEditTargetDate(MouseEvent event){
+        boolean DEBUG_THIS = true;
+        System.out.println("CFProject.handleEditTargetDate(Event event)");
+        LocalDate date = ((DatePicker) event.getSource()).getValue();
+        if ( DEBUG_THIS ) System.err.println("\tnew target date: " + date);
     }
     
     public void handleEditGoal(CellEditEvent<CFProject, String> event) {
@@ -351,13 +365,7 @@ public class CFProjectApp extends Application{
         tableComment.setItems(persist.getComments(cf.getId()));
         updateProjectTable();
     }
-    
-    private void handleEditTargetDate(Event event){
-        boolean DEBUG_THIS = true;
-        System.out.println("CFProject.handleEditTargetDate");
-        LocalDate date = datePicker.getValue();
-        if (DEBUG_THIS) System.err.println("\tnew target date: " + date);
-    }
+   
     /**
      * not so much handling edit of comments as adding  a new one, but there you go
      * if it makes you happy
