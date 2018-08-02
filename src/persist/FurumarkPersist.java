@@ -8,27 +8,42 @@ package persist;
 import CFProject.CFComment;
 import CFProject.CFProject;
 import CFProject.CFStates;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.time.LocalDate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 
 /**
  *
  * @author curtr
  */
-public class CFDBPersist implements IPersist {
+public class FurumarkPersist implements IPersist {
 
 
 
     @Override
     public int addProject(LocalDate date, String description, String state, String goal) {
-           System.out.println(String.format("addProject(%s,%s, %s,%s)", date.toString(), description, state, goal ));
-           
-           return 0;
+        int id = 0;
+            System.out.println(String.format("FurumarkPersist.addProject(%s,%s, %s,%s)", date.toString(), description, state, goal ));
+            String params = String.format("?target_date=%s&description=%s&state=%s&goal=%s", date.toString(), description, state, goal);
+            params = params.replace(" ", "+");
+            //params = URLEncoder.encode(params, "UTF-8");
+            CFRemoteDB remoteDB = new CFRemoteDB("http://localhost/hello.php" + params);
+            id = remoteDB.doStuff();
+
+        return id;
     }
 
+    
     @Override
     public void updateState(int id, String newState) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        System.out.println("FurumarkPersist.updateState(): " + id + " " + newState);
+        String query = String.format("update cf_project set state=%s where id=%d", newState, id);
+        String url = "http://localhost/update.php";
+        CFRemoteDB remoteDB = new CFRemoteDB(url);
+        remoteDB.doStuff();
     }
 
     @Override

@@ -6,23 +6,25 @@
 package test;
 
 import java.time.LocalDate;
-import persist.CFDBPersist;
+import persist.FurumarkPersist;
 
 /**
  *
  * @author curtr
  */
-public class TestCFDBPersist {
-    CFDBPersist persist = new CFDBPersist();
+public class FurumarkPersistTest {
+    private FurumarkPersist persist = new FurumarkPersist();
     public static void main(String[] args){
-        new TestCFDBPersist().testAddProject();
+        new FurumarkPersistTest().testAddProject();
     
     }
     
     public void testAddProject(){
-        System.out.println("testAddProject()");
-        persist.setURL("http://curtfurumark");
+        System.out.println("FurumarkPersist.testAddProject()");
         persist.addProject(LocalDate.now(), "testing", "not done", "just do it");
+    }
+    public void testUpdateProject(){
+        System.out.println("FurumarkPersist.testUpdateProject()");
         
     }
     
