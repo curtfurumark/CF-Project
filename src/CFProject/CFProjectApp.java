@@ -32,6 +32,7 @@ import javafx.scene.layout.HBox;
 //import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import persist.FurumarkPersist;
 import persist.IPersist;
 import persist.SQLitePersist;
 
@@ -54,7 +55,8 @@ public class CFProjectApp extends Application{
     private Scene scene = null;
     private Scene sceneNewProject = null;
     private Stage primaryStage = null;
-    private final IPersist persist = new SQLitePersist();
+    //private final IPersist persist = new SQLitePersist();
+    private final IPersist persist = new FurumarkPersist();
     private final TextField textFieldDescription = new TextField();
     private final TextField textFieldSearch = new TextField();
     private final DatePicker datePicker = new DatePicker();
@@ -353,16 +355,17 @@ public class CFProjectApp extends Application{
         System.out.println("CFProjectApp.handleEditComment");
         String newComment = event.getNewValue();
         if( DEBUG_THIS) System.out.println("\tnew comment: " + newComment);
-        CFProject cf = event.getTableView().getItems().get(event.getTablePosition().getRow());
-        cf.setComment(newComment);
-        persist.updateComment(cf.getId(), newComment);
-        persist.addComment(cf.getId(), newComment);
+        CFProject project = event.getTableView().getItems().get(event.getTablePosition().getRow());
+        project.setComment(newComment);
+        if ( DEBUG_THIS) System.out.println("\tid: " + project.getId());
+        persist.updateComment(project.getId(), newComment);
+        persist.addComment(project.getId(), newComment);
         ((CFProject) event.getTableView().getItems().get(
                 event.getTablePosition().getRow())
                 ).setState(event.getNewValue());
  
         tableProjects.setItems(persist.getProjects(textFieldSearch.getText(), new CFStates(this)));
-        tableComment.setItems(persist.getComments(cf.getId()));
+        tableComment.setItems(persist.getComments(project.getId()));
         updateProjectTable();
     }
    

@@ -10,6 +10,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 //import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -55,6 +58,7 @@ public class CFProject {
     public void setLastUpdate(LocalDateTime lastUpdate) {
         this.lastUpdate = lastUpdate;
     }
+
     public CFProject(LocalDate targetDate, String description, String state, String goal) {
         System.out.println("CFProject ctor...4 args");
         this.targetDate = targetDate;
@@ -68,6 +72,24 @@ public class CFProject {
         //this.lastUpdate = LocalDateTime.now().format(formatter);
         
         //lastUpdate = lastUpdate.format(formatter);
+    }
+
+    public static CFProject fromString(String str){
+        System.out.println("CFProject.fromString()");
+        boolean DEBUG_THIS = true;
+        String arr[] = str.split("::");
+        Map<String, String> map = CFUtil.stringArr2HashMap(arr, ">");
+        String tmp = map.get("<target_date");
+        LocalDate targetDate = LocalDate.parse(tmp);
+        String str2 = map.get("<last_update");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime lastUpdate = LocalDateTime.parse(str2, formatter);
+        String description = map.get("<description");
+        String goal = map.get("<goal");
+        String state = map.get("<state");
+        String id = map.get("<id");
+        if ( DEBUG_THIS) System.out.println("\tid: " + id);
+        return new CFProject(targetDate, description, state,Integer.parseInt(id), "no comment", goal, lastUpdate);
     }
      
     public CFProject(LocalDate targetDate, String description, String state, int id, String comment, String goal, LocalDateTime lastUpdate) {
@@ -109,8 +131,7 @@ public class CFProject {
     @Override
     public String toString() {
         if (lastUpdate == null){
-            System.out.println("lastUpdate is null");
-            //lastUpdate = LocalDateTime.now();
+            System.err.println("lastUpdate is null");
         }
         return String.format("CFTodoItem(%s, %s, %s, %d, %s, %s, %s)", description, targetDate, state, id, comment, goal, lastUpdate.toString());
     }

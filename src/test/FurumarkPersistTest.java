@@ -15,7 +15,7 @@ import persist.FurumarkPersist;
 public class FurumarkPersistTest {
     private FurumarkPersist persist = new FurumarkPersist();
     public static void main(String[] args){
-        new FurumarkPersistTest().testAddProject();
+        new FurumarkPersistTest().testGetProjects();
     
     }
     
@@ -25,7 +25,10 @@ public class FurumarkPersistTest {
     }
     public void testUpdateProject(){
         System.out.println("FurumarkPersist.testUpdateProject()");
-        
+    }
+    public void testGetProjects(){
+        System.out.println("testGetProjects()");
+        persist.getProjects("", null);
     }
     
 }

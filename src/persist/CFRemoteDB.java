@@ -11,6 +11,8 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,7 +26,17 @@ public class CFRemoteDB {
         System.out.println("hello: " + url);
         this.url = url;
     }
+    public CFRemoteDB(){
     
+    }
+    protected void addComment(int project_id, String comment, LocalDateTime dateTime){
+        System.out.println("CFRemoteDB.addComment" );
+        boolean DEBUG_THIS = true;
+        DateTimeFormatter  formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        String now = LocalDateTime.now().format(formatter);
+        String params = String.format("?project_id=%d&comment=%s&date_time=%s", project_id, comment, now);
+        System.out.println("\tparams: " + params);
+    }
     public int doStuff(){
         boolean DEBUG_THIS = true;
         int id = 42;

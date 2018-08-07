@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import persist.FurumarkPersist;
+import persist.IPersist;
 import persist.SQLiteDB;
 import persist.SQLitePersist;
 
@@ -19,6 +21,7 @@ import persist.SQLitePersist;
  * @author curt
  */
 public class Testing {
+    private IPersist persist = new FurumarkPersist();
     public static void main(String[] args){
         //LocalDateTime ldt = LocalDateTime.now();
         //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -34,19 +37,32 @@ public class Testing {
     public void runTests(){
         System.out.println("runTests()");
         //this.testComposeWhereClause();
-        this.testGetProjects();
+        //this.testGetProjects();
+        this.testAddComment();
+        //this.testAddProject();
         //this.testSQL();
         //this.testCFProject();
     }
+    public void testAddProject(){
+        System.out.println("testAddProject");
+        CFProject project = new CFProject(LocalDate.now(), "hello description", "not done" ,"do it" );
+        persist.addProject(project);
+        
+    }
+    
     public void testCFProject(){
         System.out.println("testCFProject");
         CFProject project = new CFProject(LocalDate.now(), "description", "not done" ,"do it" );
         System.out.println(project.toString());
     }
+    public void testCFProjectFromString(String str){
+        System.out.println("testCFProjectFromString");
+    
+    }
     
     public void testGetProjects(){
         System.out.println("testGetProjects()");
-        SQLitePersist persist = new SQLitePersist();
+        IPersist persist = new FurumarkPersist();
         CFStates states = new CFStates();
         states.setWip(true);
         states.setTodo(true);
@@ -77,5 +93,10 @@ public class Testing {
         System.out.println("\tfragment: " + fragment);
         
     
+    }
+
+    private void testAddComment() {
+        System.out.println("FurumarkPersist.addComment()");
+        persist.addComment(12,"no comments");
     }
 }

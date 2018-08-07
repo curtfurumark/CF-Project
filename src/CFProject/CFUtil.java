@@ -9,7 +9,9 @@ import java.io.File;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.Event;
@@ -61,6 +63,24 @@ public class CFUtil {
         } catch (SQLException ex) {
             Logger.getLogger(CFUtil.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    
+    static Map<String, String> stringArr2HashMap(String[] arr, String delim){
+        System.out.println("CFUtil.stringArr2HashMap: " + delim);
+        boolean DEBUG_THIS = false;
+        Map<String, String> map = new HashMap<>();
+        for(int i = 0; i < arr.length; i++){
+            if( DEBUG_THIS) System.out.println("\tsplitting this: " + arr[i]);
+            String[] tmp = arr[i].split(delim);
+            if ( tmp.length == 2){
+                if( DEBUG_THIS) System.out.format("\t:[0] %s [1] %s\n", tmp[0], tmp[1]);
+                map.put(tmp[0], tmp[1]);
+            }else{
+                map.put(tmp[0], "");
+            }
+        }
+        return map;
     }
 
     static void debug(Event event) {
